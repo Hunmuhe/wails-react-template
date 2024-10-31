@@ -6,14 +6,18 @@ import {
 import routes from '~react-pages'
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils"
-import TeamSwitcher from "@/components/my/account-switcher"
+import TeamSwitcher from "@/components/custom/account-switcher"
 import { Separator } from "@/components/ui/separator"
-import { Nav } from "@/components/my/nav"
+import { Nav } from "@/components/custom/nav"
 import {
   File,
   Inbox,
+  Settings,
 } from "lucide-react"
 import { LucideIcon } from "lucide-react"
+import { useUserStore } from '@/store/store.user'
+import { ReloadIcon } from "@radix-ui/react-icons"
+
 
 interface Links {
   url: string
@@ -21,12 +25,12 @@ interface Links {
   label?: string
   icon: LucideIcon
   variant: "default" | "ghost"
+  location: "start" | "end"
 }
 
 const App: React.FC = () => {
-  const [isCollapsed, setIsCollapsed] = React.useState(false)
   const navigate = useNavigate(); // 使用 useNavigate 钩子
-
+  const userStore = useUserStore()
   const initialLinks: Links[] = [
     {
       url: "/",
@@ -34,6 +38,7 @@ const App: React.FC = () => {
       label: "",
       icon: Inbox,
       variant: "default",
+      location: "start"
     },
     {
       url: "/about",
@@ -41,61 +46,34 @@ const App: React.FC = () => {
       label: "",
       icon: File,
       variant: "ghost",
+      location: "start"
+    },
+    {
+      url: "/settings/global",
+      title: "全局设置",
+      label: "",
+      icon: Settings,
+      variant: "ghost",
+      location: "end"
     }
   ]
   const [links, setLinks] = React.useState<Links[]>(initialLinks)
 
-  const accounts = [
-    {
-      label: "Alicia Koch",
-      email: "alicia@example.com",
-      icon: (
-        <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <title>Vercel</title>
-          <path d="M24 22.525H0l12-21.05 12 21.05z" fill="currentColor" />
-        </svg>
-      ),
-    },
-    {
-      label: "Alicia Koch",
-      email: "alicia@gmail.com",
-      icon: (
-        <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <title>Gmail</title>
-          <path
-            d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"
-            fill="currentColor"
-          />
-        </svg>
-      ),
-    },
-    {
-      label: "Alicia Koch",
-      email: "alicia@me.com",
-      icon: (
-        <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <title>iCloud</title>
-          <path
-            d="M13.762 4.29a6.51 6.51 0 0 0-5.669 3.332 3.571 3.571 0 0 0-1.558-.36 3.571 3.571 0 0 0-3.516 3A4.918 4.918 0 0 0 0 14.796a4.918 4.918 0 0 0 4.92 4.914 4.93 4.93 0 0 0 .617-.045h14.42c2.305-.272 4.041-2.258 4.043-4.589v-.009a4.594 4.594 0 0 0-3.727-4.508 6.51 6.51 0 0 0-6.511-6.27z"
-            fill="currentColor"
-          />
-        </svg>
-      ),
-    },
-  ]
-
-  const handleLinkClick = (index: number) => {
-    // 更新链接的 variant 属性
+  const handleLinkClick = (url: string) => {
     const updatedLinks: Links[] = links.map((link, i) => {
-      if (i !== index) {
+      if (link.url !== url) {
         return { ...link, variant: 'ghost' }; // 更新其他链接的 variant
       } else {
         return { ...link, variant: 'default' }; // 更新被点击链接的 variant
       }
     });
-    console.log(updatedLinks);
     setLinks(updatedLinks); // 更新状态
-    navigate(links[index].url)
+    // 跳转到对应页面
+    links.map((link, i) => {
+      if (link.url == url) {
+        navigate(url)
+      }
+    })
   };
 
   return (
@@ -105,7 +83,7 @@ const App: React.FC = () => {
           <div
             className={cn(
               "flex h-[52px] items-center justify-center",
-              isCollapsed ? "h-[52px]" : "px-2"
+              false ? "h-[52px]" : "px-2"
             )}
           >
             <TeamSwitcher />
@@ -117,9 +95,19 @@ const App: React.FC = () => {
           />
         </div>
         <div className='w-full'>
-          <Suspense fallback={<p>Loading...</p>}>
-            {useRoutes(routes)}
-          </Suspense>
+          {userStore.currUser.username === "请选择账号" && userStore.currUser.token === null && location.pathname !== "/settings/global" ?
+            <div className='flex justify-center items-center h-screen'>
+              <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+            </div>
+            :
+            <Suspense fallback={
+              <div className='flex justify-center items-center h-screen'>
+                <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+              </div>
+            }>
+              {useRoutes(routes)}
+            </Suspense>
+          }
         </div>
       </div>
     </>

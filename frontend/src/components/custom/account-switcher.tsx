@@ -45,36 +45,23 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-
-const groups = [
-    {
-        label: "账号",
-        teams: [
-            {
-                label: "Acme Inc.",
-                value: "acme-inc",
-            },
-            {
-                label: "Monsters Inc.",
-                value: "monsters",
-            },
-        ],
-    },
-]
-
-type Team = (typeof groups)[number]["teams"][number]
+import { useUserStore } from '@/store/store.user'
+import { userType } from '@/types/user'
 
 type PopoverTriggerProps = React.ComponentPropsWithoutRef<typeof PopoverTrigger>
 
 interface TeamSwitcherProps extends PopoverTriggerProps { }
 
 export default function TeamSwitcher({ className }: TeamSwitcherProps) {
+    const userStore = useUserStore()
+    const [username, setUsername] = React.useState('');
+    const [password, setPassword] = React.useState('');
     const [open, setOpen] = React.useState(false)
     const [showNewTeamDialog, setShowNewTeamDialog] = React.useState(false)
-    const [selectedTeam, setSelectedTeam] = React.useState<Team>(
-        groups[0].teams[0]
+    const [selectedTeam, setSelectedTeam] = React.useState<userType>(
+        userStore.currUser
     )
-
+    console.log(userStore)
     return (
         <Dialog open={showNewTeamDialog} onOpenChange={setShowNewTeamDialog}>
             <Popover open={open} onOpenChange={setOpen}>
@@ -87,14 +74,14 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                         className={cn("w-[200px] justify-between", className)}
                     >
                         <Avatar className="mr-2 h-5 w-5">
-                            <AvatarImage
+                            {/* <AvatarImage
                                 src={`https://avatar.vercel.sh/${selectedTeam.value}.png`}
                                 alt={selectedTeam.label}
                                 className="grayscale"
-                            />
+                            /> */}
                             <AvatarFallback>SC</AvatarFallback>
                         </Avatar>
-                        {selectedTeam.label}
+                        {selectedTeam.username}
                         <CaretSortIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
@@ -102,38 +89,37 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                 <PopoverContent className="w-[200px] p-0">
                     <Command>
                         <CommandList>
-                            {groups.map((group) => (
-                                <CommandGroup key={group.label} heading={group.label}>
-                                    {group.teams.map((team) => (
-                                        <CommandItem
-                                            key={team.value}
-                                            onSelect={() => {
-                                                setSelectedTeam(team)
-                                                setOpen(false)
-                                            }}
-                                            className="text-sm"
-                                        >
-                                            <Avatar className="mr-2 h-5 w-5">
-                                                <AvatarImage
+                            <CommandGroup key="账号" heading="账号">
+                                {userStore.users.map((user) => (
+                                    <CommandItem
+                                        key={user.username}
+                                        onSelect={() => {
+                                            userStore.switchUser(user.username)
+                                            setSelectedTeam(user)
+                                            setOpen(false)
+                                        }}
+                                        className="text-sm"
+                                    >
+                                        <Avatar className="mr-2 h-5 w-5">
+                                            {/* <AvatarImage
                                                     src={`https://avatar.vercel.sh/${team.value}.png`}
                                                     alt={team.label}
                                                     className="grayscale"
-                                                />
-                                                <AvatarFallback>SC</AvatarFallback>
-                                            </Avatar>
-                                            {team.label}
-                                            <CheckIcon
-                                                className={cn(
-                                                    "ml-auto h-4 w-4",
-                                                    selectedTeam.value === team.value
-                                                        ? "opacity-100"
-                                                        : "opacity-0"
-                                                )}
-                                            />
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                            ))}
+                                                /> */}
+                                            <AvatarFallback>SC</AvatarFallback>
+                                        </Avatar>
+                                        {user.username}
+                                        <CheckIcon
+                                            className={cn(
+                                                "ml-auto h-4 w-4",
+                                                selectedTeam.username === user.username
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+                                            )}
+                                        />
+                                    </CommandItem>
+                                ))}
+                            </CommandGroup>
                         </CommandList>
                         <CommandSeparator />
                         <CommandList>
@@ -146,7 +132,7 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                                         }}
                                     >
                                         <PlusCircledIcon className="mr-2 h-5 w-5" />
-                                        Create Team
+                                        添加账号
                                     </CommandItem>
                                 </DialogTrigger>
                             </CommandGroup>
@@ -156,46 +142,36 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
             </Popover>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Create team</DialogTitle>
+                    <DialogTitle>添加账号</DialogTitle>
                     <DialogDescription>
-                        Add a new team to manage products and customers.
+                        添加账号描述
                     </DialogDescription>
                 </DialogHeader>
                 <div>
                     <div className="space-y-4 py-2 pb-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Team name</Label>
-                            <Input id="name" placeholder="Acme Inc." />
+                            <Label >账号</Label>
+                            <Input placeholder="账号" onChange={(e) => setUsername(e.target.value)} />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="plan">Subscription plan</Label>
-                            <Select>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a plan" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="free">
-                                        <span className="font-medium">Free</span> -{" "}
-                                        <span className="text-muted-foreground">
-                                            Trial for two weeks
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value="pro">
-                                        <span className="font-medium">Pro</span> -{" "}
-                                        <span className="text-muted-foreground">
-                                            $9/month per user
-                                        </span>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Label >密码</Label>
+                            <Input placeholder="密码" onChange={(e) => setPassword(e.target.value)} />
                         </div>
                     </div>
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setShowNewTeamDialog(false)}>
-                        Cancel
+                        取消
                     </Button>
-                    <Button type="submit">Continue</Button>
+                    <Button type="submit" onClick={() => {
+                        console.log(username, password);
+                        const user: userType = {
+                            username: username,
+                            token: password,
+                        }
+                        userStore.newUser(user)
+                        setShowNewTeamDialog(false)
+                    }}>添加</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
