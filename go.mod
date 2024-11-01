@@ -1,4 +1,4 @@
-module buyer
+module postoffice
 
 go 1.21
 

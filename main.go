@@ -17,7 +17,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     "buyer",
+		Title:     "post office",
 		Width:     1300,
 		Height:    800,
 		MinWidth:  1300,
